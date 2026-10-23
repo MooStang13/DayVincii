@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#E4DFFA">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 rx=%2722%27 fill=%27%23E4DFFA%27/%3E%3Ctext x=%2750%27 y=%2772%27 font-size=%2770%27 text-anchor=%27middle%27 font-family=%27Georgia,serif%27 font-weight=%27700%27 fill=%27%235B49D1%27%3ED%3C/text%3E%3C/svg%3E">
+<meta name="description" content="Dayvincii: one cryptic puzzle a day. Solve it against the clock and see where you rank.">
+<title>Dayvincii: one puzzle a day</title>
+<style>
+:root{
+  --bg:#E4DFFA; --ink:#2A2650; --muted:#5A5683; --surface:#F3F0FF; --edge:#C6BEF0;
+  --slip:#FFFFFF; --slipink:#2A2650; --cta:#FFCBA9; --accent:#5B49D1; --mint:#C4EAD6;
+  --rose:#A93450; --shadow:#CFC7F3;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-text-size-adjust:100%}
+body{min-height:100dvh}
+#app{max-width:480px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;
+  padding:max(14px,env(safe-area-inset-top)) 18px max(28px,env(safe-area-inset-bottom))}
+header{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0 16px}
+.mark{font-family:var(--serif);font-weight:700;font-size:30px;letter-spacing:-.02em}
+.no{color:var(--muted);font-size:15px}
+h1{font-family:var(--serif);font-weight:700;font-size:42px;line-height:1.04;letter-spacing:-.02em;margin:12px 0 14px}
+h2{font-family:var(--serif);font-size:22px;margin:26px 0 8px}
+p{line-height:1.5;margin:0 0 14px;color:var(--ink);font-size:17px}
+.muted{color:var(--muted);font-size:14px;line-height:1.45}
+.center{text-align:center}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+.cta{display:block;width:100%;background:var(--cta);color:var(--ink);font-weight:700;font-size:18px;
+  padding:17px 20px;border-radius:999px;margin-top:10px;box-shadow:0 3px 0 #EDAF88}
+.cta:active{transform:translateY(2px);box-shadow:0 1px 0 #EDAF88}
+.ghost{display:block;width:100%;border:2px solid var(--edge);border-radius:999px;font-weight:600;font-size:16px;padding:14px 20px;margin-top:10px}
+.link{color:var(--muted);text-decoration:underline;text-underline-offset:3px;font-size:15px;padding:12px 4px}
+.link:disabled{opacity:.5;text-decoration:none}
+.row{display:flex;justify-content:space-between;align-items:center}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+
+input.ans{width:100%;font:inherit;font-size:20px;background:var(--surface);color:var(--ink);border:2px solid var(--edge);
+  border-radius:10px;padding:15px 16px;margin:6px 0 4px}
+input.ans::placeholder{color:#9A96BD}
+input.ans:focus{outline:none;border-color:var(--accent)}
+
+.clockrow{display:flex;align-items:flex-end;justify-content:space-between;min-height:70px}
+.clock{font-family:var(--serif);font-weight:700;font-size:66px;line-height:1;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;color:var(--accent)}
+.pen{color:var(--rose);font-weight:700;font-size:20px;padding-bottom:6px}
+
+.slip{background:var(--slip);color:var(--slipink);border-radius:10px;padding:20px 20px 18px;margin:10px 0 14px;box-shadow:0 3px 0 var(--shadow)}
+.slip .kind{font-size:14px;color:var(--muted);margin-bottom:12px}
+.slip .body{font-family:var(--serif);font-size:25px;line-height:1.35}
+.slip .body.cipher{font-size:26px;font-weight:600;letter-spacing:.07em;word-spacing:.4em;overflow-wrap:anywhere}
+.slip .body.seq{font-size:30px;letter-spacing:.03em;font-variant-numeric:tabular-nums}
+.slip .note{font-size:14px;line-height:1.45;color:var(--muted);margin-top:14px;border-top:1px solid #E6E2F8;padding-top:12px}
+.slip.enter{animation:drop .5s cubic-bezier(.2,.8,.3,1)}
+.shake{animation:shake .35s}
+@keyframes drop{from{transform:translateY(-22px);opacity:0}to{transform:none;opacity:1}}
+@keyframes shake{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.hint{background:var(--surface);border-left:4px solid var(--accent);padding:12px 14px;margin:0 0 10px;border-radius:4px;line-height:1.45;font-size:15px}
+.msg{min-height:22px;color:var(--rose);font-size:15px;font-weight:600;margin:2px 0 4px}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:26px 0 8px}
+.stats div{background:var(--surface);border-radius:10px;padding:12px 10px}
+.stats b{display:block;font-family:var(--serif);font-size:26px;font-variant-numeric:tabular-nums}
+.stats span{font-size:13px;color:var(--muted)}
+
+.rank{background:var(--mint);color:var(--ink);border-radius:10px;padding:20px;margin:16px 0 6px}
+.rank .big{font-family:var(--serif);font-weight:700;font-size:72px;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.rank .of{font-size:17px;margin-top:4px}
+.rank .tier{font-family:var(--serif);font-size:24px;font-weight:700;margin-top:14px}
+.rank .small{font-size:14px;margin-top:2px;color:#33584A}
+
+.hist{display:flex;align-items:flex-end;gap:5px;height:96px;margin-top:8px}
+.hist i{flex:1;background:var(--edge);border-radius:3px 3px 0 0;min-height:3px}
+.hist i.me{background:var(--accent)}
+.hlab{display:flex;gap:5px;margin-top:5px}
+.hlab span{flex:1;text-align:center;font-size:11px;color:var(--muted)}
+
+.board{list-style:none;margin:6px 0 0;padding:0}
+.board li{display:flex;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--edge);font-size:16px}
+.board li.me{color:var(--accent);font-weight:700}
+.board .t{font-variant-numeric:tabular-nums}
+.board .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sharebox{width:100%;background:var(--surface);color:var(--ink);border:2px solid var(--edge);border-radius:10px;padding:12px;font:inherit;font-size:15px;margin-top:10px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function(){
+'use strict';
+
+/* ---------- helpers ---------- */
+const DAY = 86400000;
+const LAUNCH = Math.floor(Date.UTC(2026, 9, 4) / DAY);
+const todayNum = () => Math.floor(Date.now() / DAY);
+const keyOf = n => new Date(n * DAY).toISOString().slice(0, 10);
+const numberOf = n => n - LAUNCH + 1;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => String(s).toLowerCase().replace(/[^a-z0-9.]/g, '').replace(/\.+$/, '');
+const pad2 = n => String(n).padStart(2, '0');
+const fmtClock = ms => { const t = Math.floor(ms / 1000); return Math.floor(t / 60) + ':' + pad2(t % 60); };
+const fmtP = ms => { const t = ms / 1000, m = Math.floor(t / 60), s = (t - m * 60).toFixed(1); return m + ':' + (s.length < 4 ? '0' : '') + s; };
+const fmtHMS = ms => { const t = Math.max(0, Math.floor(ms / 1000)); return pad2(Math.floor(t / 3600)) + ':' + pad2(Math.floor(t % 3600 / 60)) + ':' + pad2(t % 60); };
+const points = ms => Math.max(20, Math.round(1000 * Math.pow(0.5, ms / 120000)));
+
+function rng(seed){
+  let a = seed >>> 0;
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+const ri = (r, a, b) => a + Math.floor(r() * (b - a + 1));
+function shuffled(len, r){
+  const o = [...Array(len).keys()];
+  for (let i = len - 1; i > 0; i--){ const j = Math.floor(r() * (i + 1)); [o[i], o[j]] = [o[j], o[i]]; }
+  return o;
+}
+const orderCache = {};
+function order(len, salt, k){
+  const ck = salt + ':' + len + ':' + k;
+  if (orderCache[ck]) return orderCache[ck];
+  let o = shuffled(len, rng(salt + k));
+  if (k > 0 && len > 16){
+    // keep anything seen at the end of the last cycle out of the start of this one
+    const tail = new Set(order(len, salt, k - 1).slice(-8));
+    const head = o.slice(0, 8), rest = o.slice(8);
+    const bad = head.filter(x => tail.has(x)), good = head.filter(x => !tail.has(x));
+    const swapIn = [], keep = [];
+    for (const x of rest){ if (swapIn.length < bad.length && !tail.has(x)) swapIn.push(x); else keep.push(x); }
+    o = [...good, ...swapIn, ...bad, ...keep];
+  }
+  return orderCache[ck] = o;
+}
+function pick(list, n, salt){
+  const len = list.length, k = Math.floor(n / len);
+  return list[order(len, salt, k)[n % len]];
+}
+
+/* ---------- storage: Claude artifact storage, else localStorage, else memory ---------- */
+const hasWS = typeof window !== 'undefined' && window.storage && typeof window.storage.get === 'function';
+const mem = {};
+async function pget(k){
+  try{
+    if (hasWS){ const r = await window.storage.get(k, false); return r ? JSON.parse(r.value) : null; }
+    const v = window.localStorage.getItem('dayvincii:' + k); return v ? JSON.parse(v) : null;
+  }catch(e){ return mem[k] !== undefined ? mem[k] : null; }
+}
+async function pset(k, v){
+  mem[k] = v;
+  try{
+    if (hasWS) await window.storage.set(k, JSON.stringify(v), false);
+    else window.localStorage.setItem('dayvincii:' + k, JSON.stringify(v));
+  }catch(e){}
+}
+async function sset(k, v){ if (!hasWS) return false; try{ return !!(await window.storage.set(k, JSON.stringify(v), true)); }catch(e){ return false; } }
+async function slist(prefix){ if (!hasWS) return null; try{ const r = await window.storage.list(prefix, true); return r && r.keys ? r.keys.slice() : null; }catch(e){ return null; } }
+async function sget(k){ try{ const r = await window.storage.get(k, true); return r ? JSON.parse(r.value) : null; }catch(e){ return null; } }
+
+/* ---------- puzzle content ---------- */
+const AN = 'Anagram. Shuffle the first word.';
+const REV = 'Reversal. Read the first word backwards.';
+const HID = 'Hidden word. The answer is buried in the clue.';
+const CHA = 'Charade. Two short pieces stuck together.';
+const DBL = 'Double definition. One word, two meanings.';
+
+const CRYPTIC = [
+  {q:'Listen badly, being quiet (6)', a:['silent'], h:AN},
+  {q:'Stale, shuffled, makes roofing stone (5)', a:['slate'], h:AN},
+  {q:'Dusty, rearranged, is work at a desk (5)', a:['study'], h:AN},
+  {q:'Evil, going backwards, to exist (4)', a:['live'], h:REV},
+  {q:'Partly in cheap entertainers: a writing tool (3)', a:['pen'], h:HID},
+  {q:"Inside 'she artfully', you'll find the organ (5)", a:['heart'], h:HID},
+  {q:'Counter plus name: farm building (4)', a:['barn'], h:CHA + ' A counter can be found in a pub.'},
+  {q:'Vehicle, then animal: floor covering (6)', a:['carpet'], h:CHA},
+  {q:'Ocean and child: time of year (6)', a:['season'], h:CHA},
+  {q:"Flier's cricket equipment (3)", a:['bat'], h:DBL},
+  {q:'Autumn tumble (4)', a:['fall'], h:DBL},
+  {q:'Season for a coil (6)', a:['spring'], h:DBL},
+  {q:'Rescue, unfortunately, is safe (6)', a:['secure'], h:AN},
+  {q:'Angered, in a mess, is a weapon (7)', a:['grenade'], h:AN},
+  {q:'Moon starer, rearranged, is a sky scientist (10)', a:['astronomer'], h:'Anagram. The first two words are the fodder.'},
+  {q:'Dirty room, rearranged, where students sleep (9)', a:['dormitory'], h:'Anagram. The first two words are the fodder.'},
+  {q:'Stressed, turned around, makes puddings (8)', a:['desserts'], h:REV},
+  {q:'Drawer, reversed, is a prize (6)', a:['reward'], h:REV}
+];
+
+const LOGIC = [
+  {q:'The day before the day before yesterday was three days after Saturday. What day is it today?', a:['friday'], h:'Work out which day is three days after Saturday, then count forward.'},
+  {q:'Peter is taller than Quinn. Rosa is shorter than Quinn. Sam is taller than Peter. Who is second shortest?', a:['quinn'], h:'Line them up from tallest to shortest.'},
+  {q:'How many times does the digit 7 appear when you write every number from 1 to 100?', a:['20'], h:'Count the units place and the tens place separately.'},
+  {q:'A clock shows 3:15. What is the angle in degrees between the hands?', a:['7.5'], h:'The hour hand has moved a quarter of the way past the 3.'},
+  {q:'I am a three-digit number. My digits add up to 12. My tens digit is double my hundreds digit and my units digit is triple it. What am I?', a:['246'], h:'Call the hundreds digit h. The digits add up to 6h.'},
+  {q:'What comes next? O, T, T, F, F, S, S, E, ...', a:['n'], h:'Think of counting: one, two, three.'},
+  {q:'What five-letter word becomes shorter when you add two letters to it?', a:['short'], h:'Read the question as literally as you can.'},
+  {q:'Name an English word with three pairs of double letters in a row.', a:['bookkeeper','bookkeepers','bookkeeping'], h:'It is a job. It involves accounts.'},
+  {q:'What word sounds the same when you remove four of its five letters?', a:['queue'], h:'You join one at the bus stop.'},
+  {q:'Rearrange the letters of NEW DOOR to describe your answer.', a:['oneword'], h:'A three-letter word and a four-letter word.'},
+  {q:'What is the smallest positive whole number divisible by every number from 1 to 10?', a:['2520'], h:'Build it from prime factors. You need 2 three times, 3 twice, 5 and 7.'},
+  {q:'What is the sum of the first 20 odd numbers?', a:['400'], h:'The first few sums are 1, 4, 9, 16.'},
+  {q:'How many squares of any size are on a standard 8 by 8 chessboard?', a:['204'], h:'Count the 1 by 1 squares, then the 2 by 2 squares, and look for the pattern.'},
+  {q:'Five machines make five widgets in five minutes. How many minutes do 100 machines need to make 100 widgets?', a:['5'], h:'Work out how long one machine takes to make one widget.'},
+  {q:'Lily pads double in area every day and cover the whole lake on day 48. On which day did they cover half of it?', a:['47'], h:'Work backwards from the end.'},
+  {q:'A snail climbs 3 m each day and slips back 2 m each night. On which day does it get out of a 10 m well?', a:['8'], h:'On the last day it climbs out and never slips back.'},
+  {q:'What comes next? 1, 11, 21, 1211, 111221, ...', a:['312211'], h:'Read each number aloud, describing the digits you see.'},
+  {q:'What comes next? 3, 3, 5, 4, 4, 3, 5, 5, 4, ...', a:['3'], h:'Count letters in words.'},
+  {q:'A bat and a ball cost £1.10 in total. The bat costs £1 more than the ball. How many pence does the ball cost?', a:['5','5p','5pence'], h:'The bat is not £1.'},
+  {q:'What is always spelled wrong?', a:['wrong'], h:'The answer is in the question.'},
+  {q:'J, F, M, A, M, J, J, A, S, O, N, ... what comes next?', a:['d'], h:'These are the first letters of things you find on a calendar.'},
+  {q:'Divide 30 by a half and add 10. What do you get?', a:['70'], h:'Dividing by a half is not the same as halving.'},
+  {q:'A farmer has 17 sheep. All but 9 run away. How many are left?', a:['9'], h:'Read "all but" carefully.'},
+  {q:'You overtake the runner in second place. What position are you in?', a:['second','2nd','2'], h:'You have only passed one person.'},
+  {q:'I am light as a feather, yet the strongest person cannot hold me for more than a few minutes. What am I?', a:['breath','abreath','yourbreath'], h:'You are doing it right now.'},
+  {q:'What has to be broken before you can use it?', a:['egg','anegg'], h:'You might find one at breakfast.'},
+  {q:'How many months of the year have 28 days?', a:['12','twelve','all'], h:'Think about what each month has.'},
+  {q:'A five-letter device that spots aircraft, and its name reads the same backwards. What is it?', a:['radar'], h:'It works with radio waves.'}
+];
+
+const PHRASES = [
+  'FORTUNE FAVOURS THE BOLD','TRUST BUT VERIFY','THE GAME IS AFOOT','LEAVE NO STONE UNTURNED',
+  'SILENCE IS GOLDEN','PLAY THE LONG GAME','EVERY LOCK HAS A KEY','MEASURE TWICE CUT ONCE',
+  'BETTER LATE THAN NEVER','SLEEP ON IT','KEEP YOUR EYES OPEN','NOTHING BUT THE TRUTH',
+  'FOLLOW THE MONEY','ONE STEP AHEAD','LOOK BEFORE YOU LEAP','FIRST AMONG EQUALS',
+  'THE PLOT THICKENS','CHANCE FAVOURS THE PREPARED','BREAK THE ICE','NO SMOKE WITHOUT FIRE',
+  'HIDDEN IN PLAIN SIGHT','WAIT FOR THE RIGHT MOMENT','THE LAST LAUGH','KNOW YOUR ENEMY'
+];
+
+const shiftCh = (c, k) => /[A-Z]/.test(c) ? String.fromCharCode((c.charCodeAt(0) - 65 + k + 2600) % 26 + 65) : c;
+
+function buildCipher(n){
+  const phrase = pick(PHRASES, n, 4000);
+  const variant = (n + Math.floor(n / PHRASES.length)) % 4;
+  const r = rng(9000 + n);
+  let text, note;
+  if (variant === 0){
+    const k = ri(r, 3, 23);
+    text = phrase.replace(/[A-Z]/g, c => shiftCh(c, k));
+    note = 'Every letter has been pushed ' + k + ' places along the alphabet, so A became ' + shiftCh('A', k) + '. Push them back.';
+  } else if (variant === 1){
+    text = phrase.replace(/[A-Z]/g, c => String.fromCharCode(155 - c.charCodeAt(0)));
+    note = 'The alphabet has been mirrored: A and Z swapped, B and Y swapped, and so on.';
+  } else if (variant === 2){
+    text = phrase.split(' ').map(w => [...w].reverse().join('')).join(' ');
+    note = 'Each word has been spelled backwards.';
+  } else {
+    text = phrase.split(' ').map(w => [...w].map((c, i) => shiftCh(c, i + 1)).join('')).join(' ');
+    note = 'In each word, the first letter was pushed 1 place along the alphabet, the second 2 places, the third 3, and so on. Undo it.';
+  }
+  const first = phrase.split(' ')[0];
+  return {type:'cipher', title:'Cipher', body:text, cls:'cipher', note:note + ' Type the original phrase.',
+    ans:[phrase], hint:'The first word has ' + first.length + ' letters and starts with ' + first[0] + '.'};
+}
+
+function buildSeq(n){
+  const recent = [];
+  for (let i = 1; i <= 10 && n - i >= 0; i++) recent.push(buildSeqRaw(n - i, 0).body);
+  for (let salt = 0; salt < 20; salt++){
+    const p = buildSeqRaw(n, salt);
+    if (!recent.includes(p.body)) return p;
+  }
+  return buildSeqRaw(n, 0);
+}
+function buildSeqRaw(n, salt){
+  const r = rng(5000 + n * 31 + salt * 7919);
+  const kind = (n + Math.floor(n / 8)) % 8;
+  let t = [], shown, hint;
+  if (kind === 0){ const a = ri(r,2,60), d = ri(r,3,29); for (let i=0;i<7;i++) t.push(a+d*i); shown = 6; hint = 'The same step every time.'; }
+  else if (kind === 1){ const a = ri(r,2,9), q = ri(r,2,4); for (let i=0;i<6;i++) t.push(a*Math.pow(q,i)); shown = 5; hint = 'Each term is a multiple of the one before.'; }
+  else if (kind === 2){ const k = ri(r,-20,30); for (let i=0;i<7;i++) t.push((i+2)*(i+2)+k); shown = 6; hint = 'Every term is the same distance from a square number.'; }
+  else if (kind === 3){ const a = ri(r,1,20), d = ri(r,1,9), e = ri(r,1,4); for (let i=0;i<7;i++) t.push(a+i*d+e*i*(i-1)/2); shown = 6; hint = 'Look at the gaps. The gaps have a pattern too.'; }
+  else if (kind === 4){ const s1 = ri(r,1,20), a = ri(r,2,6), s2 = ri(r,30,60), b = ri(r,2,6); for (let i=0;i<8;i++) t.push(i%2===0 ? s1+a*(i/2) : s2-b*((i-1)/2)); shown = 7; hint = 'Two sequences are woven together. Read every other number.'; }
+  else if (kind === 5){ const x = ri(r,1,9), y = ri(r,2,12); t = [x,y]; for (let i=2;i<7;i++) t.push(t[i-1]+t[i-2]); shown = 6; hint = 'Each number comes from the two before it.'; }
+  else if (kind === 6){ const k = ri(r,-15,40); for (let i=1;i<=6;i++) t.push(i*i*i+k); shown = 5; hint = 'Think cubes.'; }
+  else { const x = ri(r,3,9), m = ri(r,2,3), c = ri(r,-2,7); t = [x]; for (let i=1;i<6;i++) t.push(m*t[i-1]+c); shown = 5; hint = 'Each term is built from the last by multiplying, then adding or subtracting.'; }
+  return {type:'sequence', title:'Number sequence', body:t.slice(0, shown).join(', ') + ', ?', cls:'seq',
+    note:'Find the number that replaces the question mark.', ans:[String(t[shown])], hint:hint};
+}
+
+function build(type, n){
+  if (type === 'cryptic'){
+    const p = pick(CRYPTIC, n, 100);
+    return {type, title:'Cryptic clue', body:p.q, note:'The number in brackets is the length of the answer.',
+      ans:p.a, hint:p.h + ' Starts with ' + p.a[0][0].toUpperCase() + '.'};
+  }
+  if (type === 'logic'){
+    const p = pick(LOGIC, n, 200);
+    return {type, title:'Logic', body:p.q, note:'Answer with a word or a number.', ans:p.a, hint:p.h};
+  }
+  if (type === 'cipher') return buildCipher(n);
+  return buildSeq(n);
+}
+
+const CYCLE = ['cryptic','logic','cipher','sequence','logic','cryptic','sequence','cipher'];
+const LABEL = {cryptic:'a cryptic clue', logic:'a logic puzzle', cipher:'a cipher', sequence:'a number sequence'};
+const SHORT = {cryptic:'Cryptic', logic:'Logic', cipher:'Cipher', sequence:'Sequence'};
+function scheduleFor(dn){
+  const L = CYCLE.length, c = Math.floor(dn / L), p = ((dn % L) + L) % L, type = CYCLE[p];
+  const per = CYCLE.filter(t => t === type).length;
+  const before = CYCLE.slice(0, p).filter(t => t === type).length;
+  return {type, n:c * per + before};
+}
+
+/* ---------- handles ---------- */
+const ADJ = ['Nimble','Quiet','Brass','Cunning','Dozy','Lateral','Sly','Odd','Steady','Wry','Keen','Dry'];
+const ANI = ['Otter','Fox','Heron','Lynx','Badger','Crow','Hare','Newt','Stoat','Owl','Wren','Mole'];
+const randHandle = (r) => { r = r || Math.random; return ADJ[Math.floor(r()*ADJ.length)] + ' ' + ANI[Math.floor(r()*ANI.length)]; };
+const newUid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+
+/* ---------- state ---------- */
+const S = {
+  uid:null, handle:'', stats:{solved:0, streak:0, best:0, lastDay:0, pcts:[], points:0},
+  screen:'home', mode:'daily', dn:0, sched:null, dpuzzle:null, puzzle:null,
+  run:null, done:null, field:null, tm:null, confirmGive:false, enter:false, pres:null, shareOut:''
+};
+const app = document.getElementById('app');
+const penalty = r => r.wrong * 15000 + (r.hint ? 30000 : 0);
+const elapsed = () => Date.now() - S.run.start + penalty(S.run);
+const penText = () => { const p = penalty(S.run) / 1000; return p ? '+' + p + 's' : ''; };
+const liveStreak = () => S.stats.lastDay >= S.dn - 1 ? S.stats.streak : 0;
+const topPct = (rank, total) => Math.max(1, Math.ceil(rank / total * 100));
+const tierOf = (rank, total) => { const p = topPct(rank, total); return rank === 1 || p <= 5 ? 'Da Vinci' : p <= 25 ? 'Polymath' : p <= 50 ? 'Apprentice' : 'Sketcher'; };
+
+/* ---------- fields (the comparison) ---------- */
+function ghostField(){
+  const d = S.done, r = rng(777 + S.dn);
+  const med = ({cryptic:100, logic:75, cipher:85, sequence:60})[S.sched.type] * 1000;
+  const rows = [];
+  for (let i = 0; i < 180; i++){
+    const u = Math.max(r(), 1e-6), v = r();
+    const z = Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+    rows.push({name:randHandle(r), ms:Math.max(8000, Math.round(med * Math.exp(0.6 * z))), me:false});
+  }
+  rows.push({name:d.handle, ms:d.ms, me:true});
+  rows.sort((a, b) => a.ms - b.ms || (a.me ? 1 : -1));
+  const rank = rows.findIndex(x => x.me) + 1;
+  return {live:false, times:rows.map(x => x.ms), rank, total:rows.length, top:rows.slice(0, 5)};
+}
+
+async function loadField(first){
+  const d = S.done, dk = keyOf(S.dn);
+  if (!d || d.gaveUp) return;
+  if (first && d.key) await sset(d.key, {n:d.handle, s:d.pts, w:d.wrong});
+  const keys = await slist('t:' + dk + ':');
+  let f;
+  if (keys){
+    if (!keys.includes(d.key)) keys.push(d.key);
+    keys.sort();
+    const ms = k => parseInt(k.split(':')[2], 10);
+    const top = [];
+    for (const k of keys.slice(0, 5)){
+      const v = k === d.key ? {n:d.handle} : await sget(k);
+      top.push({name:(v && v.n) || 'Anonymous', ms:ms(k), me:k === d.key});
+    }
+    f = {live:true, times:keys.map(ms), rank:keys.indexOf(d.key) + 1, total:keys.length, top};
+  } else f = ghostField();
+  S.field = f;
+  if (!d.counted){
+    const s = S.stats;
+    s.streak = s.lastDay === S.dn - 1 ? s.streak + 1 : 1;
+    s.lastDay = S.dn; s.best = Math.max(s.best, s.streak); s.solved++; s.points += d.pts;
+    s.pcts.push(topPct(f.rank, f.total)); if (s.pcts.length > 30) s.pcts.shift();
+    d.counted = true;
+    pset('stats', s); pset('done:' + dk, d);
+  }
+  if (S.screen === 'result') render();
+}
+
+const EDGES = [15, 30, 45, 60, 90, 120, 180, 300];
+const BINLAB = ['15s','30s','45s','1m','90s','2m','3m','5m','5m+'];
+function bins(times, my){
+  const idx = ms => { const s = ms / 1000; let i = 0; while (i < EDGES.length && s >= EDGES[i]) i++; return i; };
+  const c = Array(9).fill(0); times.forEach(t => c[idx(t)]++);
+  return {c, mine:idx(my)};
+}
+
+/* ---------- views ---------- */
+function homeView(){
+  const st = S.stats;
+  const usual = st.pcts.length ? 'Top ' + Math.round(st.pcts.reduce((a, b) => a + b, 0) / st.pcts.length) + '%' : 'None yet';
+  return `
+    <h1>One puzzle a day.</h1>
+    <p>A new puzzle opens every day at midnight UTC. Solve it as fast as you can. The clock starts when you tap.</p>
+    <p class="muted">Today's puzzle is ${LABEL[S.sched.type]}. Wrong answers add 15 seconds. A hint adds 30.</p>
+    <label class="muted" for="handle">Your handle, shown on the board</label>
+    <input id="handle" class="ans" maxlength="16" value="${esc(S.handle)}" autocomplete="off" spellcheck="false">
+    <button class="cta" data-act="start">Start the clock</button>
+    <div class="stats">
+      <div><b>${liveStreak()}</b><span>day streak</span></div>
+      <div><b>${st.solved}</b><span>solved</span></div>
+      <div><b style="font-size:20px;line-height:32px">${usual}</b><span>usual standing</span></div>
+    </div>`;
+}
+
+function playView(){
+  const p = S.puzzle, r = S.run;
+  const numeric = p.ans.every(a => /^[0-9.]+$/.test(a));
+  const cls = S.enter ? ' enter' : ''; S.enter = false;
+  return `
+    <div class="clockrow"><div class="clock" id="clock">0:00</div><div class="pen" id="pen">${penText()}</div></div>
+    <div class="slip${cls}" id="slip">
+      <div class="kind">${p.title}${S.mode === 'practice' ? ', practice' : ''}</div>
+      <div class="body ${p.cls || ''}">${esc(p.body)}</div>
+      ${p.note ? `<div class="note">${esc(p.note)}</div>` : ''}
+    </div>
+    ${r.hint ? `<div class="hint">${esc(p.hint)}</div>` : ''}
+    <input id="ans" class="ans" placeholder="Your answer" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="${numeric ? 'decimal' : 'text'}" enterkeyhint="go">
+    <div class="msg" id="msg"></div>
+    <button class="cta" data-act="enter" style="margin-top:0">Enter</button>
+    <div class="row">
+      <button class="link" data-act="hint" ${r.hint ? 'disabled' : ''}>${r.hint ? 'Hint used' : 'Hint, +30s'}</button>
+      <button class="link" data-act="giveup">${S.confirmGive ? 'Tap again to reveal the answer' : (S.mode === 'practice' ? 'Skip' : 'Give up')}</button>
+    </div>`;
+}
+
+function board(f, d){
+  let rows = f.top.map((x, i) => `<li class="${x.me ? 'me' : ''}"><span class="n">${i + 1}. ${esc(x.name)}</span><span class="t">${fmtP(x.ms)}</span></li>`).join('');
+  if (f.rank > 5) rows += `<li style="justify-content:center;color:var(--muted)">...</li><li class="me"><span class="n">${f.rank}. ${esc(d.handle)}</span><span class="t">${fmtP(d.ms)}</span></li>`;
+  return `<ul class="board">${rows}</ul>`;
+}
+
+function resultView(){
+  const d = S.done, cd = `<p class="muted center" style="margin-top:22px">Next puzzle in <span id="cd">${fmtHMS((todayNum() + 1) * DAY - Date.now())}</span></p>`;
+  if (d.gaveUp){
+    return `
+      <h1>Not today.</h1>
+      <p>The answer was <strong style="color:var(--accent)">${esc(S.dpuzzle.ans[0])}</strong>.</p>
+      <p class="muted">No score and the streak resets. Tomorrow's puzzle is a fresh start.</p>
+      <button class="ghost" data-act="practice">Try a practice puzzle</button>${cd}`;
+  }
+  const f = S.field;
+  const solve = d.ms - (d.wrong * 15000 + (d.hint ? 30000 : 0));
+  const parts = [`Solve ${fmtP(solve)}`];
+  if (d.wrong) parts.push(`${d.wrong} wrong ${d.wrong === 1 ? 'answer' : 'answers'} +${d.wrong * 15}s`);
+  if (d.hint) parts.push('hint +30s');
+  let body;
+  if (!f){
+    body = `<p class="muted" style="margin-top:18px">Checking the board...</p>`;
+  } else {
+    const b = bins(f.times, d.ms), mx = Math.max.apply(null, b.c);
+    const pct = topPct(f.rank, f.total);
+    const sorted = f.times.slice().sort((a, c) => a - c);
+    const med = sorted[Math.floor(sorted.length / 2)];
+    body = `
+      <div class="rank">
+        <div class="big">#${f.rank}</div>
+        <div class="of">of ${f.total} ${f.total === 1 ? 'player' : 'players'} today</div>
+        <div class="tier">${tierOf(f.rank, f.total)}</div>
+        <div class="small">${f.total === 1 ? 'First on the board.' : 'Top ' + pct + '%. Median time ' + fmtP(med) + '. Fastest ' + fmtP(sorted[0]) + '.'}</div>
+      </div>
+      ${f.live ? '' : '<p class="muted">Offline preview: ranked against a simulated field.</p>'}
+      <h2>How today went</h2>
+      <div class="hist">${b.c.map((c, i) => `<i class="${i === b.mine ? 'me' : ''}" style="height:${Math.round(c / mx * 100)}%"></i>`).join('')}</div>
+      <div class="hlab">${BINLAB.map(l => `<span>${l}</span>`).join('')}</div>
+      <p class="muted" style="margin-top:8px">Final times, yours in yellow.</p>
+      <h2>Fastest today</h2>
+      ${board(f, d)}`;
+  }
+  const st = S.stats;
+  return `
+    <h1>${fmtP(d.ms)}</h1>
+    <p class="muted" style="margin-top:-6px">${parts.join(', ')}. ${d.pts} points.</p>
+    ${body}
+    <div class="stats">
+      <div><b>${liveStreak()}</b><span>day streak</span></div>
+      <div><b>${st.solved}</b><span>solved</span></div>
+      <div><b>${st.points}</b><span>total points</span></div>
+    </div>
+    ${f ? '<button class="cta" data-act="share">Share result</button>' : ''}
+    ${S.shareOut ? `<textarea class="sharebox" rows="3" readonly>${esc(S.shareOut)}</textarea>` : ''}
+    <button class="ghost" data-act="practice">Try a practice puzzle</button>
+    ${cd}`;
+}
+
+function pdoneView(){
+  const x = S.pres;
+  return `
+    <h1>${x.skipped ? 'Skipped.' : 'Solved in ' + fmtP(x.ms) + '.'}</h1>
+    <p>The answer was <strong style="color:var(--accent)">${esc(S.puzzle.ans[0])}</strong>.</p>
+    <p class="muted">Practice puzzles do not count towards the board.</p>
+    <button class="cta" data-act="practice">Another practice puzzle</button>
+    <button class="ghost" data-act="back">${S.done ? 'Back to today' : 'Back to today'}</button>`;
+}
+
+function render(){
+  let inner = '';
+  if (S.screen === 'home') inner = homeView();
+  else if (S.screen === 'play') inner = playView();
+  else if (S.screen === 'result') inner = resultView();
+  else inner = pdoneView();
+  const tag = S.mode === 'practice' && S.screen !== 'home' ? 'Practice' : 'No. ' + numberOf(S.dn);
+  app.innerHTML = `<header><span class="mark">Dayvincii</span><span class="no">${tag}</span></header>${inner}`;
+  if (S.screen === 'play'){
+    startTick();
+    const a = document.getElementById('ans'); if (a) a.focus();
+  } else clearInterval(S.tm);
+}
+
+function startTick(){
+  clearInterval(S.tm);
+  const upd = () => { const e = document.getElementById('clock'); if (!e){ clearInterval(S.tm); return; } e.textContent = fmtClock(elapsed()); };
+  upd(); S.tm = setInterval(upd, 250);
+}
+
+/* ---------- actions ---------- */
+async function startDaily(){
+  const h = document.getElementById('handle');
+  S.handle = (h && h.value.trim().slice(0, 16)) || randHandle();
+  pset('handle', S.handle);
+  S.mode = 'daily'; S.puzzle = S.dpuzzle;
+  S.run = {start:Date.now(), wrong:0, hint:false};
+  pset('run:' + keyOf(S.dn), S.run);
+  S.screen = 'play'; S.enter = true; S.confirmGive = false; render();
+}
+
+function startPractice(){
+  const types = ['cryptic', 'logic', 'cipher', 'sequence'];
+  const t = types[Math.floor(Math.random() * 4)];
+  S.mode = 'practice'; S.puzzle = build(t, Math.floor(Math.random() * 400));
+  S.run = {start:Date.now(), wrong:0, hint:false};
+  S.screen = 'play'; S.enter = true; S.confirmGive = false; render();
+}
+
+function persistRun(){ if (S.mode === 'daily') pset('run:' + keyOf(S.dn), S.run); }
+
+async function submit(){
+  const inp = document.getElementById('ans'); if (!inp) return;
+  const v = norm(inp.value); if (!v) return;
+  if (S.puzzle.ans.some(a => norm(a) === v)){
+    clearInterval(S.tm);
+    const ms = elapsed();
+    if (S.mode === 'practice'){ S.pres = {ms}; S.screen = 'pdone'; render(); return; }
+    const dk = keyOf(S.dn);
+    S.done = {ms, wrong:S.run.wrong, hint:S.run.hint, pts:points(ms), handle:S.handle, gaveUp:false,
+      key:`t:${dk}:${String(Math.min(ms, 99999999)).padStart(8, '0')}:${S.uid}`};
+    await pset('done:' + dk, S.done);
+    S.field = null; S.shareOut = ''; S.screen = 'result'; render();
+    loadField(true);
+    return;
+  }
+  S.run.wrong++; persistRun();
+  inp.value = '';
+  document.getElementById('pen').textContent = penText();
+  document.getElementById('msg').textContent = 'Not that one. 15 seconds added.';
+  const slip = document.getElementById('slip');
+  slip.classList.remove('shake', 'enter'); void slip.offsetWidth; slip.classList.add('shake');
+  inp.focus();
+}
+
+function useHint(){
+  if (S.run.hint) return;
+  const keep = (document.getElementById('ans') || {}).value || '';
+  S.run.hint = true; persistRun();
+  render();
+  const a = document.getElementById('ans'); if (a){ a.value = keep; }
+}
+
+async function giveUp(){
+  if (S.mode === 'daily' && !S.confirmGive){ S.confirmGive = true; render(); return; }
+  clearInterval(S.tm); S.confirmGive = false;
+  if (S.mode === 'practice'){ S.pres = {skipped:true}; S.screen = 'pdone'; render(); return; }
+  const dk = keyOf(S.dn);
+  S.done = {gaveUp:true, handle:S.handle, counted:true};
+  const s = S.stats; s.streak = 0; s.lastDay = S.dn;
+  await pset('done:' + dk, S.done); await pset('stats', s);
+  S.screen = 'result'; render();
+}
+
+function back(){
+  S.mode = 'daily'; S.puzzle = S.dpuzzle;
+  if (S.done){ S.screen = 'result'; render(); if (!S.field) loadField(false); }
+  else { S.screen = S.run ? 'play' : 'home'; render(); }
+}
+
+async function share(){
+  const d = S.done, f = S.field;
+  const txt = `Dayvincii No. ${numberOf(S.dn)} (${SHORT[S.sched.type]})\nTime ${fmtP(d.ms)}, rank ${f.rank} of ${f.total}, top ${topPct(f.rank, f.total)}%\nStreak ${liveStreak()} ${liveStreak() === 1 ? 'day' : 'days'}`;
+  try{ if (navigator.share){ await navigator.share({text:txt}); return; } }catch(e){}
+  try{ await navigator.clipboard.writeText(txt); S.shareOut = ''; const b = document.querySelector('[data-act="share"]'); if (b) b.textContent = 'Copied'; return; }catch(e){}
+  S.shareOut = txt; render();
+}
+
+const actions = {start:startDaily, enter:submit, hint:useHint, giveup:giveUp, practice:startPractice, back:back, share:share};
+app.addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (b && !b.disabled) actions[b.dataset.act](); });
+app.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'ans') submit(); });
+
+/* ---------- boot ---------- */
+async function init(){
+  S.dn = todayNum(); S.sched = scheduleFor(S.dn);
+  S.dpuzzle = build(S.sched.type, S.sched.n); S.puzzle = S.dpuzzle; S.mode = 'daily'; S.field = null;
+  let uid = await pget('uid'); if (!uid){ uid = newUid(); await pset('uid', uid); }
+  S.uid = uid;
+  S.handle = (await pget('handle')) || randHandle();
+  const st = await pget('stats'); if (st) S.stats = Object.assign({solved:0, streak:0, best:0, lastDay:0, pcts:[], points:0}, st);
+  const dk = keyOf(S.dn);
+  S.done = await pget('done:' + dk); S.run = await pget('run:' + dk);
+  if (S.done){ S.screen = 'result'; render(); loadField(false); }
+  else if (S.run){ S.screen = 'play'; render(); }
+  else { S.screen = 'home'; render(); }
+}
+
+setInterval(() => {
+  const el = document.getElementById('cd');
+  if (el) el.textContent = fmtHMS((todayNum() + 1) * DAY - Date.now());
+  if (todayNum() !== S.dn && S.screen !== 'play' && S.mode === 'daily') init();
+}, 1000);
+
+init();
+})();
+</script>
+</body>
+</html>
